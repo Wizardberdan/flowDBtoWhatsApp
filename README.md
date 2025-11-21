@@ -101,5 +101,7 @@ Este projeto é um MVP funcional. As próximas evoluções mapeadas incluem:
 
 **Alberdan Gomes Bezerra de Menezes**
 
-  * [LinkedIn]([LINK_DO_SEU_LINKEDIN](https://www.linkedin.com/in/alberdangomes/))
-  * [Portfólio](LINK_DO_SEU_NOTION](https://berdanthewise.notion.site/Portf-lio-1e4087e630c8809d89eadfd5dcc09a5c))
+  * [LinkedIn]
+  Link: https://www.linkedin.com/in/alberdangomes/
+  * [Portfólio]
+  Link: https://berdanthewise.notion.site/Portf-lio-1e4087e630c8809d89eadfd5dcc09a5c
