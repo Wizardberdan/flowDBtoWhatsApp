@@ -1,0 +1,230 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 8,
+              "minute": 30
+            }
+          ]
+        }
+      },
+      "id": "018a60b1-5012-4bf6-96a0-4c38ff962f07",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        992,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resultado = {};\n\nfor (const item of $input.all()) {\n  const empresa = String(item.json.EMPRESA);\n  const venda = parseFloat(item.json.VENDA || 0);\n  \n  if (empresa && empresa !== 'undefined') {\n    resultado[empresa] = venda;\n  }\n}\n\nreturn [{ json: resultado }];"
+      },
+      "id": "6a568e60-73dd-4180-88ef-d2a352fc3de6",
+      "name": "Tratar Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/testewhats2",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUA_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"SEU_NUMERO\",\n    \"text\": {{ JSON.stringify($json[\"text\"]) }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "71319e00-53e8-4202-a4f0-0ef9631b729e",
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1856,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT EMPRESA, SUM(VENDA_LIQUIDA) AS VENDA FROM VENDAS_ANALITICAS \nWHERE MOVIMENTO = CAST(GETDATE() - 90 AS DATE) AND EMPRESA IN (2, 4, 6, 34, 11, 23)\nGROUP BY EMPRESA\n"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        560
+      ],
+      "id": "f8ae45c4-9c67-4666-aaac-42e71fe54e2a",
+      "name": "Microsoft SQL",
+      "credentials": {
+        "microsoftSql": {
+          "id": "ZGLbzi6ESzQfoyf6",
+          "name": "Microsoft SQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1440,
+        416
+      ],
+      "id": "e23f012f-c234-4536-bcc6-aec5ea76e08c",
+      "name": "When chat message received",
+      "webhookId": "1c331cbc-d331-4a8c-a57f-b7c19461ea66",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Atue como um Assistente Executivo de Business Intelligence. Sua tarefa é transformar os dados brutos de vendas abaixo em um informe estratégico para envio via WhatsApp.\n\nDADOS DE VENDAS (JSON):\n{{JSON.stringify($json)}}\n\nDIRETRIZES DE RESPOSTA:\n1. Tom de Voz: Profissional, direto e levemente motivador.\n2. Formatação WhatsApp:\n   - Use emojis para facilitar a leitura (ex: 📊, 🏆, 💰, 🚀).\n   - Use asteriscos (*) para colocar em negrito os nomes das lojas e os valores monetários (ex: *R$ 50.000*).\n   - NÃO use formatação de código (```) ou cabeçalhos markdown (##).\n   - Mantenha o texto curto (máximo de 10-12 linhas).\n\nESTRUTURA DA MENSAGEM:\n1. Saudação (ex: \"Bom dia, time!\" ou \"Resumo Executivo 📊\").\n2. 🏆 Destaque: Cite a loja com o maior volume de vendas e o valor exato.\n3. 💰 Faturamento Total: A soma total das vendas do período processado.\n4. 💡 Insight Rápido: Uma frase única analisando o desempenho (ex: \"Superamos a média da semana passada\" ou \"Atenção para o desempenho da loja X\").\n\nGere apenas o conteúdo da mensagem, pronto para enviar."
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        1568,
+        560
+      ],
+      "id": "c2cbe225-c642-4b7a-a3ea-d288d3c8d263",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-3-5-haiku-20241022",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 3.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1504,
+        720
+      ],
+      "id": "de17e52c-f7b1-481b-b4d2-2acaa16e486e",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "5apGFl4qGyLqH6HI",
+          "name": "Anthropic account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Microsoft SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft SQL": {
+      "main": [
+        [
+          {
+            "node": "Tratar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tratar Dados": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c238246d-cc90-486d-b434-adee2c3ed895",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d4453cfcd01830aff9e1db0b6604896011ec5898a75362429bcf1f9cea34249e"
+  },
+  "id": "6N21zxagstfqiZeT",
+  "tags": []
+}

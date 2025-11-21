@@ -1,0 +1,64 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5679:5678"
+    networks:
+      - backend
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER}        # <--- Variável
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASS}    # <--- Variável
+      - N8N_HOST=n8n.local
+      - WEBHOOK_URL=http://localhost:5679
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  evolution-api:
+    image: evoapicloud/evolution-api:latest
+    ports:
+      - "8090:8080"
+    networks:
+      - backend
+    environment:
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - SERVER_URL=http://localhost:8090
+      - DATABASE_PROVIDER=postgresql
+      # Abaixo usamos as variáveis para montar a URL de conexão
+      - DATABASE_CONNECTION_URI=postgresql://${EVO_DB_USER}:${EVO_DB_PASS}@postgres:5432/${EVO_DB_NAME}?schema=public
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379/6
+      - AUTHENTICATION_API_KEY=${EVO_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - evolution_data:/app/data
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=${EVO_DB_USER}     # <--- Mesma variável usada na API
+      - POSTGRES_PASSWORD=${EVO_DB_PASS} # <--- Mesma variável usada na API
+      - POSTGRES_DB=${EVO_DB_NAME}
+    networks:
+      - backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+
+networks:
+  backend:
+
+volumes:
+  n8n_data:
+  evolution_data:
+  postgres_data:
+  redis_data:
